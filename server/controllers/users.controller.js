@@ -49,8 +49,17 @@ const signup = async (req, res) => {
 
 //filter pencarian data dengan primary key
 const readAllUser = async (req, res) => {
-  const users = await req.context.models.users.findAll();
-  return res.send(users);
+  try {
+    const users = await req.context.models.users.findAll();
+    return await res.send(users);
+  } catch (err) {
+    return await res.status('400').json({
+      status: false,
+      message: "tidak dapat mendapatkan data user",
+      data: users
+
+    });
+  } 
 };
 
 

@@ -1,15 +1,23 @@
 //view data
 const readProvinceMethod = async (req,res) => {
-    const province = await req.context.models.province.findAll(
-        {
-            //Tambah Include
-            include: [{
-                model: req.context.models.city
-            }]
-        }
-
-    );
-    return res.send(province);
+    try {
+        const province = await req.context.models.province.findAll(
+            {
+                //Tambah Include
+                include: [{
+                    model: req.context.models.city
+                }]
+            }
+    
+        );
+    return await res.send(province);
+    } catch (err) {
+        return await res.status('400').json({
+          status: false,
+          message: "tidak dapat mendapatkan data province",
+          data: province
+        });
+      } 
 }
 
 //filter data with parameter

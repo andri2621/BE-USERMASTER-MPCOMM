@@ -8,6 +8,7 @@ const config = {
   CLOUDINARY_CLOUD_NAME : 'codeid',
   CLOUDINARY_API_KEY : '353246269428416',
   CLOUDINARY_API_SECRET: 'XKAOQ-zFiXM4bNv-aNcO7nTmHAE',
+  reCaptchaSecret: '6LfvBY4aAAAAAO7yTghCTqJzVZ8OdDDWB2bqK3DK'
 }
 
 export default config

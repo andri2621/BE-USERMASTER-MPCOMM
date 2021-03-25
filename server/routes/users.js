@@ -25,9 +25,34 @@ router.post('/signout/', indexCtrl.users.signout);
 
 
 router.get('/all/', indexCtrl.users.readAllUser);
+router.get('/cari/:userId', indexCtrl.users.findUser);
+
 
 router.post('/ubahpassword/',indexCtrl.users.ubahPassword);
 
+
+
+router.post("/signup-with-recaptcha", async (req, res, next) => {
+    if (!req.body.token) {
+        return res.status(400).json({ error: "reCaptcha token is missing" });
+    }
+
+    try {
+        const googleVerifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${process.env.reCaptchaSecret}&response=${req.body.token}`;
+        const response = await axios.post(googleVerifyUrl);
+        const { success } = response.data;
+        if (success) {
+            //Do sign up and store user in database
+            return res.json({ success: true });
+        } else {
+            return res
+                .status(400)
+                .json({ error: "Invalid Captcha. Try again." });
+        }
+    } catch (e) {
+        return res.status(400).json({ error: "reCaptcha error." });
+    }
+});
 
 
 

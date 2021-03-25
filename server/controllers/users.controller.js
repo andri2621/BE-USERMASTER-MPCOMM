@@ -182,6 +182,10 @@ const findUsersMethod = async (req, res) => {
   })
 }
 
+const findUser = async (req,res) => {
+  const users = await req.context.models.users.findByPk(req.params.userId);
+  return res.send(users);
+};
 
 
 const signout = (req, res) => {
@@ -273,5 +277,6 @@ export default {
   signin,
   requireSignin,
   ubahPassword,
-  signout
+  signout,
+  findUser
 }

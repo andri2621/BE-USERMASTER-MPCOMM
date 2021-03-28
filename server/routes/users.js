@@ -39,6 +39,8 @@ router.get('/pembelian/:accoId', indexCtrl.users.pembelian);
 router.get('/penjualan/:accoId', indexCtrl.users.penjualan);
 router.get('/terbanyak/:accoId', indexCtrl.users.terbanyak);
 
+router.get('/hitungcart/:accoId', indexCtrl.users.hitungCart);
+
 
 
 

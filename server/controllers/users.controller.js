@@ -392,6 +392,24 @@ const terbanyak = async (req, res) => {
 }
 
 
+
+
+const hitungCart = async (req, res) => {
+  // console.log(req.context.user_id)
+
+  const hitungCartTotal = await sequelize.query(
+    `select clit_id, cart_acco_id, clit_qty, clit_subtotal, clit_stat_name
+    from cart_line_items join cart on clit_cart_id = cart_id
+    where clit_stat_name = 'PENDING' and cart_acco_id = :acco_id
+    group by clit_id, cart_acco_id`
+    ,
+    { replacements: { acco_id: req.params.accoId }, type: sequelize.QueryTypes.SELECT }
+  );
+  return res.send(hitungCartTotal);
+  
+}
+
+
 // Gunakan export default agar semua function bisa dipakai di file lain.
 export default {
 
@@ -410,5 +428,6 @@ export default {
 
   pembelian,
   penjualan,
-  terbanyak
+  terbanyak,
+  hitungCart
 }

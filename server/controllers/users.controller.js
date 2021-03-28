@@ -1,9 +1,12 @@
 import { Router } from 'express';
-import { sequelize, Op } from '../models/index';
+// import { sequelize, Op } from '../models/index';
+import { sequelize, Op } from '../models/IndexModel';
+
 import AuthHelper from '../helpers/AuthHelper'
 import config from '../../config/config'
 import jwt from 'jsonwebtoken'
 import expressJwt from 'express-jwt'
+import axios from "axios";
 
 
 
@@ -264,6 +267,129 @@ const ubahPassword = async (req, res) => {
 }
 
 
+const daftarCaptcha = async (req, res, next) => {
+
+  // const { dataValues } = new req.context.models.users(req.body);
+
+
+  
+  
+  if (!req.body.token) {
+    return res.status(400).json({ error: "reCaptcha token is missing" });
+  }
+  
+  
+  const googleVerifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=6LfvBY4aAAAAAO7yTghCTqJzVZ8OdDDWB2bqK3DK&response=${req.body.token}`;
+  const response = await axios.post(googleVerifyUrl);
+  const { success } = response.data;
+  if (success) {
+    //Do sign up and store user in database
+      const emailUser = await req.context.models.users.findOne({ where: { user_email: req.body.user_email } })
+    
+      if (emailUser) {
+        return res.status(404).json({
+          status: false,
+          message: 'email sudah terdaftar, silakan login'
+        })
+      }
+
+      const salt = AuthHelper.makeSalt();
+      const hashPassword = AuthHelper.hashPassword(req.body.user_password, salt);
+      const hashDevice = AuthHelper.hashPassword(req.body.user_device_info, salt);
+
+
+      const users = await req.context.models.users.create({
+          user_name: req.body.user_name,
+          user_email: req.body.user_email,
+          user_password: hashPassword,
+          user_device_info: hashDevice,
+          user_salt: salt
+      });
+
+      return res.status('201').json({
+          message: "user berhasil didaftarkan",
+          data: users
+      })
+
+      // =====akhir signup=====
+      return res.json({ success: true });
+  } else {
+      return res
+          .status(400)
+          .json({ error: "Invalid Captcha. Try again." });
+  }
+
+
+}
+
+
+
+const pembelian = async (req, res) => {
+  // console.log(req.context.user_id)
+
+  const daftarPembelian = await sequelize.query(
+    `select order_name, acco_id, acco_nama, 
+    order_acco_id_seller,(select acco_nama from account where acco_id = order_acco_id_seller) as seller, 
+    prod_id, prod_name, order_total_qty, prim_path, order_total_due,order_weight, 
+    order_created_on, order_stat_name  
+    from account join orders  on acco_id = order_acco_id 
+    join orders_line_items on order_name = orit_order_name 
+    join product on orit_prod_id = prod_id 
+    join product_images on prod_id = prim_prod_id 
+    where acco_id = :acco_id and order_stat_name not in ('CHECKOUT') and order_stat_name = 'ARRIVED' 
+    or acco_id = :acco_id and order_stat_name = 'CLOSED'`
+    ,
+    { replacements: { acco_id: req.params.accoId }, type: sequelize.QueryTypes.SELECT }
+  );
+  return res.send(daftarPembelian);
+  
+}
+
+const penjualan = async (req, res) => {
+  // console.log(req.context.user_id)
+
+  const daftarPenjualan = await sequelize.query(
+    `select order_name, acco_id, acco_nama, 
+    order_acco_id_seller,(select acco_nama from account where acco_id = order_acco_id_seller) as seller, 
+    prod_id, prod_name, order_total_qty, prim_path, order_total_due,order_weight,
+    order_created_on,order_stat_name  
+    from account join orders 
+    on acco_id = order_acco_id join orders_line_items 
+    on order_name = orit_order_name join product 
+    on orit_prod_id = prod_id join product_images 
+    on prod_id = prim_prod_id 
+    where order_acco_id_seller = :acco_id
+    and order_stat_name = 'ARRIVED' 
+    or order_acco_id_seller = :acco_id and order_stat_name = 'CLOSED'`
+    ,
+    { replacements: { acco_id: req.params.accoId }, type: sequelize.QueryTypes.SELECT }
+  );
+  return res.send(daftarPenjualan);
+  
+}
+
+
+const terbanyak = async (req, res) => {
+  // console.log(req.context.user_id)
+
+  const penjualanTerbanyak = await sequelize.query(
+    `select prim_path, prod_name, prod_price, orit_subtotal, count(orit_prod_id) as total 
+    from account join orders 
+    on acco_id = order_acco_id join orders_line_items 
+    on order_name = orit_order_name join product 
+    on orit_prod_id = prod_id join product_images 
+    on prod_id = prim_prod_id 
+    where order_acco_id_seller = 1031
+    and order_stat_name = 'ARRIVED' 
+    or order_acco_id_seller = 1031 and order_stat_name = 'CLOSED'
+    group by prim_path,prod_name, orit_prod_id, prod_price, orit_subtotal
+    order by total desc`
+    ,
+    { replacements: { acco_id: req.params.accoId }, type: sequelize.QueryTypes.SELECT }
+  );
+  return res.send(penjualanTerbanyak);
+  
+}
 
 
 // Gunakan export default agar semua function bisa dipakai di file lain.
@@ -278,5 +404,11 @@ export default {
   requireSignin,
   ubahPassword,
   signout,
-  findUser
+  findUser,
+
+  daftarCaptcha,
+
+  pembelian,
+  penjualan,
+  terbanyak
 }

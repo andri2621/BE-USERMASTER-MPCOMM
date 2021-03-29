@@ -398,10 +398,13 @@ const hitungCart = async (req, res) => {
   // console.log(req.context.user_id)
 
   const hitungCartTotal = await sequelize.query(
-    `select clit_id, cart_acco_id, clit_qty, clit_subtotal, clit_stat_name
-    from cart_line_items join cart on clit_cart_id = cart_id
+    `select prod_id, prod_name, prod_price, clit_id, cart_acco_id, clit_qty, clit_subtotal, clit_stat_name, prim_path
+    from cart join cart_line_items on cart_id = clit_cart_id
+    join product on clit_prod_id = prod_id
+    join product_images on prod_id = prim_prod_id 
     where clit_stat_name = 'PENDING' and cart_acco_id = :acco_id
-    group by clit_id, cart_acco_id`
+    group by clit_id, cart_acco_id,prod_id, prim_path
+    order by clit_subtotal desc`
     ,
     { replacements: { acco_id: req.params.accoId }, type: sequelize.QueryTypes.SELECT }
   );

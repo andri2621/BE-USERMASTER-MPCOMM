@@ -379,9 +379,9 @@ const terbanyak = async (req, res) => {
     on order_name = orit_order_name join product 
     on orit_prod_id = prod_id join product_images 
     on prod_id = prim_prod_id 
-    where order_acco_id_seller = 1031
+    where order_acco_id_seller = :acco_id
     and order_stat_name = 'ARRIVED' 
-    or order_acco_id_seller = 1031 and order_stat_name = 'CLOSED'
+    or order_acco_id_seller = :acco_id and order_stat_name = 'CLOSED'
     group by prim_path,prod_name, orit_prod_id, prod_price, orit_subtotal
     order by total desc`
     ,

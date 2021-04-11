@@ -27,11 +27,11 @@ app.use(compress())
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());
 
-var corsOptions = {
-  origin: "http://localhost:3000"
-};
+// var corsOptions = {
+//   origin: "http://localhost:3000"
+// };
 
-app.use(cors(corsOptions));
+// app.use(cors(corsOptions));
 
 // #middleware
 app.use(async (req, res, next) => {
